@@ -2,29 +2,21 @@
 
 namespace Wsh.AssetBundles {
     public class PlatformUtils {
-        public readonly static string[] ARRAY_LIST = new string[] {
-            PC,
-            ANDROID,
-            IOS,
-            WEBGL
-        };
-
-        public const string PC = "PC";
-        public const string ANDROID = "Android";
-        public const string IOS = "iOS";
-        public const string WEBGL = "Webgl";
+        
         public const string FILE_PREFIX = "file:///";
 
         public static string Platform {
             get {
-#if UNITY_IOS
-                return IOS;
+#if UNITY_EDITOR
+                return PlatformType.PC.ToString();
+#elif UNITY_IOS
+                return PlatformType.iOS.ToString();
 #elif UNITY_ANDROID
-                return ANDROID;
+                return PlatformType.Android.ToString();
 #elif UNITY_WEBGL
-                return WEBGL;
+                return PlatformType.Webgl.ToString();
 #else
-                return PC;
+                return PlatformType.PC.ToString();
 #endif
             }
         }
@@ -48,7 +40,9 @@ namespace Wsh.AssetBundles {
         /// </summary>
         public static string StreamingAssetsPath {
             get {
-#if UNITY_ANDROID
+#if UNITY_EDITOR
+                return FILE_PREFIX + Application.streamingAssetsPath;
+#elif UNITY_ANDROID
                 return Application.streamingAssetsPath;
 #else
                 return FILE_PREFIX + Application.streamingAssetsPath;
@@ -58,10 +52,13 @@ namespace Wsh.AssetBundles {
 
         /// <summary>
         /// C# 文件流读取，在PC、 iOS下可直接使用，在 Android 下不可使用，如果要访问这个路径，一般是通过UnityWebRequest、WWW来访问的，不会通过 C# File Stream 来访问
+        /// Android 通过加载assetbundle 路径验证通过； 
         /// </summary>
         public static string StreamingAssetsPathWithStream {
             get {
-#if UNITY_ANDROID
+#if UNITY_EDITOR
+                return Application.streamingAssetsPath;
+#elif UNITY_ANDROID
                 return "jar:file://" + Application.dataPath + "!/assets/";
 #else
                 return Application.streamingAssetsPath;

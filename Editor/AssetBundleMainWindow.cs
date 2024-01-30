@@ -20,14 +20,14 @@ namespace Wsh.AssetBundles.Editor {
         public string ResRootDir { get { return m_resRootDir; } }
         public string OutputDir { get { return m_outputPath; } }
         public string Version { get { return m_version; } }
-        public BuildTargetType BuildTarget { get { return m_buildTargetType; } }
+        public PlatformType BuildTarget { get { return m_buildTargetType; } }
         public bool IsClearOutputDir { get { return m_isClearOutputDir; } }
         public bool IsCopyAssetStreaming { get { return m_isCopyAssetStreaming; } }
         public CompressOptionsType CompressOptionsType { get { return m_compressOptionsType; }}
 
         // config data
         private string m_resRootDir;
-        private BuildTargetType m_buildTargetType;
+        private PlatformType m_buildTargetType;
         private string m_outputPath;
         private string m_version;
         private bool m_isClearOutputDir;
@@ -151,7 +151,7 @@ namespace Wsh.AssetBundles.Editor {
             #region BuildTarget
             GUILayout.BeginHorizontal();
             GUILayout.Space(FIRST_SPACE);
-            m_buildTargetType = (BuildTargetType)EditorGUILayout.EnumPopup(m_targetContent, m_buildTargetType);
+            m_buildTargetType = (PlatformType)EditorGUILayout.EnumPopup(m_targetContent, m_buildTargetType);
             GUILayout.EndHorizontal();
             #endregion
             

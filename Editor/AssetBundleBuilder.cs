@@ -19,7 +19,7 @@ namespace Wsh.AssetBundles.Editor {
             m_dicAssetsBundles.Clear();
         }
         
-        public static void BuildAssetBundles(string resRootDir, string outputDir, BuildTargetType buildTarget,
+        public static void BuildAssetBundles(string resRootDir, string outputDir, PlatformType buildTarget,
             bool isClearOutputDir, bool isCopyAssetStreaming, CompressOptionsType compressOption, string version) {
             if(!Directory.Exists(resRootDir)) {
                 Log.Error("res root directory not exists.", resRootDir);
@@ -29,7 +29,7 @@ namespace Wsh.AssetBundles.Editor {
                 Log.Error("output directory not exists.", outputDir);
                 return;
             }
-
+            List<ABDependenciesInfo> dependenciesInfos = new List<ABDependenciesInfo>();
             InitDic();
             string bundleOutputPath = Path.Combine(outputDir, buildTarget.ToString());
             if(isClearOutputDir) {
@@ -57,26 +57,32 @@ namespace Wsh.AssetBundles.Editor {
                     int index = fileInAsstsPathWithoutExtension.IndexOf('/');
                     string filePathInRes = fileInAsstsPathWithoutExtension.Substring(index + 1,
                         fileInAsstsPathWithoutExtension.Length - index - 1);
-                    string assetBundleName = MD5Calculater.GetTextMD5(filePathInRes);
-                    if(m_dicAssetsBundles.ContainsKey(assetBundleName)) {
-                        continue;
-                    }
-                    
-                    Log.Info(filePaths[i], fileInAsstsPath, fileInAsstsPathWithoutExtension, filePathInRes, assetBundleName);
+                    string assetBundleName = MD5Calculater.GetTextMD5(fileInAsstsPathWithoutExtension);
+                    // Log.Info(filePaths[i], fileInAsstsPath, fileInAsstsPathWithoutExtension, filePathInRes, assetBundleName);
+                    ABDependenciesInfo dependenciesInfo = new ABDependenciesInfo("Assets/" + fileInAsstsPath);
                     // 获取资源及其依赖的资源
                     string[] dependencies = GetDependencies(fileInAsstsPath);
                     // Log.Info("-", dependencies.Length);
                     for(int j = 0; j < dependencies.Length; j++) {
                         string fileInAsstsPathWithoutExt = dependencies[j].Substring(0, dependencies[j].LastIndexOf('.'));
+                        int depIndex = fileInAsstsPathWithoutExt.IndexOf('/');
+                        fileInAsstsPathWithoutExt = fileInAsstsPathWithoutExt.Substring(depIndex + 1,
+                            fileInAsstsPathWithoutExt.Length - depIndex - 1);
+                        
                         string dependencyAssetBundleName = MD5Calculater.GetTextMD5(fileInAsstsPathWithoutExt);
-                        Log.Info("--", dependencies[j], dependencyAssetBundleName);
+                        // Log.Info("--", dependencies[j], fileInAsstsPathWithoutExt, dependencyAssetBundleName);
+                        dependenciesInfo.Add(dependencies[j]);
                         if(!m_dicAssetsBundles.ContainsKey(dependencyAssetBundleName)) {
                             AssetImporter.GetAtPath(dependencies[j]).SetAssetBundleNameAndVariant(dependencyAssetBundleName, "");
                             m_dicAssetsBundles.Add(dependencyAssetBundleName, dependencies[j]);
                         }
                     }
-                    AssetImporter.GetAtPath("Assets/" + fileInAsstsPath).SetAssetBundleNameAndVariant(assetBundleName, "");
-                    m_dicAssetsBundles.Add(assetBundleName, "Assets/" + fileInAsstsPath);
+                    if(!m_dicAssetsBundles.ContainsKey(assetBundleName)) {
+                        AssetImporter.GetAtPath("Assets/" + fileInAsstsPath).SetAssetBundleNameAndVariant(assetBundleName, "");
+                        m_dicAssetsBundles.Add(assetBundleName, "Assets/" + fileInAsstsPath);
+                    }
+                    dependenciesInfo.Sort();
+                    dependenciesInfos.Add(dependenciesInfo);
                 }
             }
             if(!Directory.Exists(bundleOutputPath)) {
@@ -85,12 +91,13 @@ namespace Wsh.AssetBundles.Editor {
             CreateVersionFile(bundleOutputPath, version);
             BuildPipeline.BuildAssetBundles(bundleOutputPath, AssetBundleEditorHelper.GetAssetBundleOptions(compressOption), AssetBundleEditorHelper.GetBuildTarget(buildTarget));
             RevertAllFilesBundleName();
-            CreateOutputResNameList(m_dicAssetsBundles, Path.Combine(bundleOutputPath, "ResNameList.lt"));
+            CreateOutputResNameList(m_dicAssetsBundles, dependenciesInfos, Path.Combine(bundleOutputPath, "ResNameList.lt"));
             if(isCopyAssetStreaming) {
                 //string targetPath = Path.Combine(streamingAssetsPath, buildTarget.ToString());
                 CopyDirectory(bundleOutputPath, Application.streamingAssetsPath, new string[]{".manifest", ".lt"});
                 AssetDatabase.Refresh();
             }
+            Log.Info("Build AssetBundles Success.");
         }
 
         private static void CreateVersionFile(string bundleOutputPath, string version) {
@@ -109,7 +116,7 @@ namespace Wsh.AssetBundles.Editor {
             string fileInAssets = "Assets/" + fileInAsstsPath;
             string[] dependencies = AssetDatabase.GetDependencies(fileInAssets, true);
             for(int i = 0; i < dependencies.Length; i++) {
-                if(!dependencies[i].EndsWith(".meta") && !Directory.Exists(dependencies[i]) && dependencies[i] != fileInAssets) {
+                if(!dependencies[i].EndsWith(".meta") && !dependencies[i].EndsWith(".cs") && !Directory.Exists(dependencies[i]) && dependencies[i] != fileInAssets) {
                     list.Add(dependencies[i]);
                 }
             }
@@ -177,9 +184,18 @@ namespace Wsh.AssetBundles.Editor {
 
         }
         
-        private static void CreateOutputResNameList(Dictionary<string, string> dicAssetsBundles, string fileName) {
+        private static void CreateOutputResNameList(Dictionary<string, string> dicAssetsBundles, List<ABDependenciesInfo> dependencies, string fileName) {
             StringBuilder sb = new StringBuilder();
             int space = 50;
+            dependencies.Sort((v1, v2) => {
+                return v1.Name.CompareTo(v2.Name);
+            });
+
+            sb.Append("Dependencies:\n");
+            for(int i = 0; i < dependencies.Count; i++) {
+                sb.Append("    " +  i.ToString() + ". " + dependencies[i].ToString());
+            }
+            sb.Append('\n');
             Dictionary<string, string> dicTemp = new Dictionary<string, string>();
             foreach(var key in dicAssetsBundles.Keys) {
                 if(dicTemp.ContainsKey(dicAssetsBundles[key])) {
@@ -188,10 +204,11 @@ namespace Wsh.AssetBundles.Editor {
                     dicTemp.Add(dicAssetsBundles[key], key);
                 }
             }
+            sb.Append("Res md5 list:\n");
             List<string> resNameList = dicTemp.Keys.ToList();
             resNameList.Sort();
             for(int i = 0; i < resNameList.Count; i++) {
-                sb.Append(resNameList[i]);
+                sb.Append("    " + resNameList[i]);
                 if(resNameList[i].Length < space) {
                     for(int j = 0; j < (space - resNameList[i].Length); j++) {
                         sb.Append(" ");

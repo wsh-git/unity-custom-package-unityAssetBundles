@@ -17,12 +17,12 @@ namespace Wsh.AssetBundles.Editor {
             return opt;
         }
 
-        public static BuildTarget GetBuildTarget(BuildTargetType buildTargetType) {
-            if(buildTargetType == BuildTargetType.Android) {
+        public static BuildTarget GetBuildTarget(PlatformType buildTargetType) {
+            if(buildTargetType == PlatformType.Android) {
                 return BuildTarget.Android;
-            } else if(buildTargetType == BuildTargetType.iOS) {
+            } else if(buildTargetType == PlatformType.iOS) {
                 return BuildTarget.iOS;
-            } else if(buildTargetType == BuildTargetType.Webgl) {
+            } else if(buildTargetType == PlatformType.Webgl) {
                 return BuildTarget.WebGL;
             }
             return BuildTarget.StandaloneWindows64;

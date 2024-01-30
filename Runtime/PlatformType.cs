@@ -1,6 +1,6 @@
-﻿namespace Wsh.AssetBundles.Editor {
+﻿namespace Wsh.AssetBundles {
     
-    public enum BuildTargetType {
+    public enum PlatformType {
         PC = 0,
         Android = 1,
         iOS = 2,
