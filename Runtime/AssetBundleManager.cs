@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 using AB = UnityEngine.AssetBundle;
 
 namespace Wsh.AssetBundles {
@@ -47,12 +48,26 @@ namespace Wsh.AssetBundles {
                 onFinish?.Invoke(m_abDic[bundleName]);
             } else {
                 string abPath = Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
+#if UNITY_WEBGL
+                UnityWebRequest webReq = UnityWebRequestAssetBundle.GetAssetBundle(abPath);
+                yield return webReq.SendWebRequest();
+                if(webReq.isDone) {
+                    if(webReq.result != UnityWebRequest.Result.Success) {
+                        Log.Error("Error downloading AssetBundle:", webReq.error);
+                    } else {
+                        AB ab = DownloadHandlerAssetBundle.GetContent(webReq);
+                        m_abDic.Add(bundleName, ab);
+                        onFinish?.Invoke(ab);
+                    }
+                }          
+#else
                 AssetBundleCreateRequest req = AB.LoadFromFileAsync(abPath);
                 yield return req;
                 if(req.isDone) {
                     m_abDic.Add(bundleName, req.assetBundle);
                     onFinish?.Invoke(req.assetBundle);
                 }
+#endif
             }
         }
         

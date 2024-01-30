@@ -23,3 +23,59 @@
 例如：
     Assets/Texture/Player001.png
     只会对 Texture/Player001 进行md5 算法；
+
+# 代码裁剪类的ID
+
+https://docs.unity3d.com/Manual/ClassIDReference.html
+
+查看要用到的类却被裁剪掉的 class id
+
+可以在Assets目录下建一个`link.xml`文件把需要的类都加回来
+
+```xml
+<linker>
+    <!-- 保留整个命名空间 -->
+    <assembly fullname="Assembly-CSharp">
+        <namespace fullname="YourNamespace" />
+    </assembly>
+
+    <!-- 保留特定的类 -->
+    <assembly fullname="Assembly-CSharp">
+        <type fullname="YourNamespace.YourClass" />
+    </assembly>
+
+    <!-- 保留类中的特定成员 -->
+    <assembly fullname="Assembly-CSharp">
+        <type fullname="YourNamespace.YourClass">
+            <method signature="System.Void YourMethod()" />
+            <field signature="System.String YourField" />
+        </type>
+    </assembly>
+</linker>
+
+```
+
+例如：
+```xml
+<linker>
+    <assembly fullname="UnityEngine">
+        <type fullname="UnityEngine.BoxCollider" />
+    </assembly>
+
+    <assembly fullname="UnityEngine">
+        <type fullname="UnityEngine.Canvas" />
+    </assembly>
+
+    <assembly fullname="UnityEngine.UI">
+        <type fullname="UnityEngine.UI.CanvasScaler" />
+    </assembly>
+    
+    <assembly fullname="UnityEngine.UI">
+        <type fullname="UnityEngine.UI.Image" />
+    </assembly>
+
+    <assembly fullname="UnityEngine.UI">
+        <type fullname="UnityEngine.UI.GraphicRaycaster" />
+    </assembly>
+</linker>
+```
