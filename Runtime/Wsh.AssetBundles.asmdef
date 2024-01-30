@@ -1,0 +1,16 @@
+{
+    "name": "Wsh.AssetBundles",
+    "rootNamespace": "",
+    "references": [
+        "GUID:edaf78f30c77a1c4ca672d7f4accd7f4"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

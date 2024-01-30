@@ -1,0 +1,19 @@
+{
+    "name": "Wsh.AssetBundles.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:cbb6323f9c77b1f4d949aeff25af92f4",
+        "GUID:edaf78f30c77a1c4ca672d7f4accd7f4"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

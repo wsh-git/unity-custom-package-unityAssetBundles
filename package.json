@@ -1,0 +1,20 @@
+{
+  "name": "com.wshunity.assetbundles",
+  "displayName": "Wsh Unity AssetBundles",
+  "version": "0.0.1",
+  "unity": "2017.2",
+  "keywords": [
+    "AssetBundles"
+  ],
+  "description": "This is a very base assetbundles.",
+  "repository": {
+    "url": "https://github.com/wsh-git/unity-custom-package-unityAssetBundles.git",
+    "type": "git",
+    "revision": ""
+  },
+  "author": {
+    "name": "wshunity",
+    "email": "",
+    "url": ""
+  }
+}
