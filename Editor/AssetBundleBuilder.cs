@@ -92,6 +92,7 @@ namespace Wsh.AssetBundles.Editor {
             BuildPipeline.BuildAssetBundles(bundleOutputPath, AssetBundleEditorHelper.GetAssetBundleOptions(compressOption), AssetBundleEditorHelper.GetBuildTarget(buildTarget));
             RevertAllFilesBundleName();
             CreateOutputResNameList(m_dicAssetsBundles, dependenciesInfos, Path.Combine(bundleOutputPath, "ResNameList.lt"));
+            CreateAssetBundleCompareFile(bundleOutputPath);
             if(isCopyAssetStreaming) {
                 //string targetPath = Path.Combine(streamingAssetsPath, buildTarget.ToString());
                 CopyDirectory(bundleOutputPath, Application.streamingAssetsPath, new string[]{".manifest", ".lt"});
@@ -153,6 +154,45 @@ namespace Wsh.AssetBundles.Editor {
                 }
             }
             return false;
+        }
+        
+        private static bool IsAssetBundle(FileInfo fileInfo) {
+            return fileInfo.Extension == "";
+        }
+
+        private static string GetAssetName(string fileFullName) {
+            int startIndex = fileFullName.LastIndexOf('\\') + 1;
+            return fileFullName.Substring(startIndex, fileFullName.Length - startIndex);
+        }
+        
+        private static void CreateAssetBundleCompareFile(string bundleOutputPath) {
+            DirectoryInfo directoryInfo = Directory.CreateDirectory(bundleOutputPath);
+            FileInfo[] files = directoryInfo.GetFiles();
+            StringBuilder sb = new StringBuilder();
+            bool isError = false;
+            for(int i = 0; i < files.Length; i++) {
+                if (files[i].FullName.Contains(AssetBundleDefine.ASSET_BUNDLE_COMPARE_INFO_SLIP_CHAR)) {
+                    Log.Error(files[i].FullName, "contain blank space");
+                    isError = true;
+                    break;
+                }
+                if(IsAssetBundle(files[i])) {
+                    sb.Append(GetAssetName(files[i].FullName));
+                    sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_INFO_SLIP_CHAR);
+                    sb.Append(files[i].Length);
+                    sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_INFO_SLIP_CHAR);
+                    sb.Append(MD5Calculater.GetFileMD5(files[i].FullName));
+                    if (i < (files.Length - 1)) {
+                        sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_FILE_SLIP_CHAR);
+                    }
+                    // Log.Info("Name", files[i].Name, "FullName", files[i].FullName, "Extension", files[i].Extension, "Length", files[i].Length);
+                }
+            }
+            if(isError) {
+                return;
+            }
+            string filePath = Path.Combine(bundleOutputPath, AssetBundleDefine.ASSET_BUNDLE_COMPARE_FILE_NAME);
+            File.WriteAllText(filePath, sb.ToString());
         }
         
         private static void CopyDirectory(string bundleOutputPath, string targetPath, string[] ignoreList) {

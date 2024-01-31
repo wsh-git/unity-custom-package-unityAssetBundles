@@ -26,6 +26,12 @@ namespace Wsh.AssetBundles.Editor {
             scriptableObject.IsCopyAssetStreaming = window.IsCopyAssetStreaming;
             scriptableObject.CompressOptionsType = window.CompressOptionsType;
             scriptableObject.Version = window.Version;
+            scriptableObject.UploadDir = window.UploadDir;
+            scriptableObject.ServerIp = window.ServerIp;
+            scriptableObject.OriginalDir = window.OriginalDir;
+            scriptableObject.UploadTargetType = window.UploadTargetType;
+            scriptableObject.Account = window.Account;
+            scriptableObject.Password = window.Password;
             EditorUtility.SetDirty(scriptableObject);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
