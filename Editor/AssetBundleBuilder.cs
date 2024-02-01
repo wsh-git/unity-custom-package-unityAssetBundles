@@ -174,15 +174,16 @@ namespace Wsh.AssetBundles.Editor {
             return fileFullName.Substring(startIndex, fileFullName.Length - startIndex);
         }
         
-        private static void EncryptAB(string filePath){
+        private static void EncryptAB(string filePath, string fileName){
             byte[] fileData = File.ReadAllBytes(filePath);
-            int fileLen = (AssetBundleDefine.ASSET_BUNDLE_OFFSET + fileData.Length);
+            int offset = AssetBundleUtils.GetBundleOffset(fileName, AssetBundleDefine.ASSET_BUNDLE_OFFSET);
+            int fileLen = (offset + fileData.Length);
             byte[] buffer = new byte[fileLen];
-            for(int slen = 0; slen < AssetBundleDefine.ASSET_BUNDLE_OFFSET; slen++) {
+            for(int slen = 0; slen < offset; slen++) {
                 buffer[slen] = 1;
             }
             for(int slen = 0; slen < fileData.Length; slen++) {
-                buffer[slen + AssetBundleDefine.ASSET_BUNDLE_OFFSET] = fileData[slen];
+                buffer[slen + offset] = fileData[slen];
             }
             FileStream fs = File.OpenWrite(filePath);
             fs.Write(buffer, 0, fileLen);
@@ -194,7 +195,7 @@ namespace Wsh.AssetBundles.Editor {
             FileInfo[] files = directoryInfo.GetFiles();
             for(int i = 0; i < files.Length; i++) {
                 if(IsAssetBundle(files[i])) {
-                    EncryptAB(files[i].FullName);
+                    EncryptAB(files[i].FullName, files[i].Name);
                 }
             }
         }

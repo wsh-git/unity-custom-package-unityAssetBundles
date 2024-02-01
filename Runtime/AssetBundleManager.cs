@@ -68,7 +68,8 @@ namespace Wsh.AssetBundles {
                         }
                     }
                 } else {
-                    AssetBundleCreateRequest req = AB.LoadFromFileAsync(abPath, 0, AssetBundleDefine.ASSET_BUNDLE_OFFSET);
+                    int offset = AssetBundleUtils.GetBundleOffset(bundleName, AssetBundleDefine.ASSET_BUNDLE_OFFSET);
+                    AssetBundleCreateRequest req = AB.LoadFromFileAsync(abPath, 0, (ulong)offset);
                     yield return req;
                     if(req.isDone) {
                         m_abDic.Add(bundleName, req.assetBundle);
@@ -110,7 +111,7 @@ namespace Wsh.AssetBundles {
             LoadBundle(bundleName, bundle => {
                 // m_abDic.Add(path, bundle);
                 StartCoroutine(GetDependenciesBundles(dependencies, () => {
-                    Log.Info("load res success.", "res name", resName, "res type", typeof(T));
+                    // Log.Info("load res success.", "res name", resName, "res type", typeof(T));
                     onFinish?.Invoke(bundle.LoadAsset<T>(resName));
                 }));
             });
@@ -119,7 +120,6 @@ namespace Wsh.AssetBundles {
         private IEnumerator GetDependenciesBundles(string[] dependencies, Action onFinish) {
             int count = dependencies.Length;
             for(int i = 0; i < dependencies.Length; i++) {
-                Log.Info("dependencies", dependencies[i]);
                 StartCoroutine(IELoadBundle(dependencies[i], bundle => {
                     count--;
                 }));
