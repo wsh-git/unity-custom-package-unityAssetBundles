@@ -48,26 +48,34 @@ namespace Wsh.AssetBundles {
                 onFinish?.Invoke(m_abDic[bundleName]);
             } else {
                 string abPath = Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
-#if UNITY_WEBGL
-                UnityWebRequest webReq = UnityWebRequestAssetBundle.GetAssetBundle(abPath);
-                yield return webReq.SendWebRequest();
-                if(webReq.isDone) {
-                    if(webReq.result != UnityWebRequest.Result.Success) {
-                        Log.Error("Error downloading AssetBundle:", webReq.error);
-                    } else {
-                        AB ab = DownloadHandlerAssetBundle.GetContent(webReq);
-                        m_abDic.Add(bundleName, ab);
-                        onFinish?.Invoke(ab);
-                    }
-                }          
+                bool isWeb = false;
+#if UNITY_EDITOR
+                isWeb = false;
+#elif UNITY_WEBGL
+                isWeb = true;
 #else
-                AssetBundleCreateRequest req = AB.LoadFromFileAsync(abPath);
-                yield return req;
-                if(req.isDone) {
-                    m_abDic.Add(bundleName, req.assetBundle);
-                    onFinish?.Invoke(req.assetBundle);
-                }
+                isWeb = false;
 #endif
+                if(isWeb) {
+                    UnityWebRequest webReq = UnityWebRequestAssetBundle.GetAssetBundle(abPath);
+                    yield return webReq.SendWebRequest();
+                    if(webReq.isDone) {
+                        if(webReq.result != UnityWebRequest.Result.Success) {
+                            Log.Error("Error downloading AssetBundle:", webReq.error);
+                        } else {
+                            AB ab = DownloadHandlerAssetBundle.GetContent(webReq);
+                            m_abDic.Add(bundleName, ab);
+                            onFinish?.Invoke(ab);
+                        }
+                    }
+                } else {
+                    AssetBundleCreateRequest req = AB.LoadFromFileAsync(abPath, 0, AssetBundleDefine.ASSET_BUNDLE_OFFSET);
+                    yield return req;
+                    if(req.isDone) {
+                        m_abDic.Add(bundleName, req.assetBundle);
+                        onFinish?.Invoke(req.assetBundle);
+                    }
+                }
             }
         }
         

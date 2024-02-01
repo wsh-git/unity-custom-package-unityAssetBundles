@@ -29,6 +29,8 @@ namespace Wsh.AssetBundles.Editor {
                 Log.Error("output directory not exists.", outputDir);
                 return;
             }
+
+            bool isEncrypt = buildTarget != PlatformType.Webgl;
             List<ABDependenciesInfo> dependenciesInfos = new List<ABDependenciesInfo>();
             InitDic();
             string bundleOutputPath = Path.Combine(outputDir, buildTarget.ToString());
@@ -92,6 +94,9 @@ namespace Wsh.AssetBundles.Editor {
             BuildPipeline.BuildAssetBundles(bundleOutputPath, AssetBundleEditorHelper.GetAssetBundleOptions(compressOption), AssetBundleEditorHelper.GetBuildTarget(buildTarget));
             RevertAllFilesBundleName();
             CreateOutputResNameList(m_dicAssetsBundles, dependenciesInfos, Path.Combine(bundleOutputPath, "ResNameList.lt"));
+            if(isEncrypt) {
+                EncryptAssetBundles(bundleOutputPath);
+            }
             CreateAssetBundleCompareFile(bundleOutputPath);
             if(isCopyAssetStreaming) {
                 //string targetPath = Path.Combine(streamingAssetsPath, buildTarget.ToString());
@@ -163,6 +168,32 @@ namespace Wsh.AssetBundles.Editor {
         private static string GetAssetName(string fileFullName) {
             int startIndex = fileFullName.LastIndexOf('\\') + 1;
             return fileFullName.Substring(startIndex, fileFullName.Length - startIndex);
+        }
+        
+        private static void EncryptAB(string filePath){
+            byte[] fileData = File.ReadAllBytes(filePath);
+            int fileLen = (AssetBundleDefine.ASSET_BUNDLE_OFFSET + fileData.Length);
+            byte[] buffer = new byte[fileLen];
+            for(int slen = 0; slen < AssetBundleDefine.ASSET_BUNDLE_OFFSET; slen++) {
+                buffer[slen] = 1;
+            }
+            for(int slen = 0; slen < fileData.Length; slen++) {
+                buffer[slen + AssetBundleDefine.ASSET_BUNDLE_OFFSET] = fileData[slen];
+            }
+            FileStream fs = File.OpenWrite(filePath);
+            fs.Write(buffer, 0, fileLen);
+            fs.Close();
+        }
+
+        private static void EncryptAssetBundles(string bundleOutputPath) {
+            DirectoryInfo directoryInfo = Directory.CreateDirectory(bundleOutputPath);
+            FileInfo[] files = directoryInfo.GetFiles();
+            for(int i = 0; i < files.Length; i++) {
+                if(IsAssetBundle(files[i])) {
+                    Log.Info(files[i].FullName);
+                    EncryptAB(files[i].FullName);
+                }
+            }
         }
         
         private static void CreateAssetBundleCompareFile(string bundleOutputPath) {

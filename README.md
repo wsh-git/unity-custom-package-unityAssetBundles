@@ -12,6 +12,7 @@
 
 # AssetBundle打包
 
+## 打包
 1、在`Res`下的资源都会逐一打包成对应的ab包，bundle名称是通过对该资源在项目中的文件路径（不包含后缀名）进行md5算法来命名的；
 
 例如：
@@ -23,6 +24,35 @@
 例如：
     Assets/Texture/Player001.png
     只会对 Texture/Player001 进行md5 算法；
+
+## 加密解密
+
+> 采用简单的在byte[]前增加指定数量的数字
+
+1、加密
+
+```C#
+private static void EncryptAB(string filePath){
+    byte[] fileData = File.ReadAllBytes(filePath);
+    int fileLen = (AssetBundleDefine.ASSET_BUNDLE_OFFSET + fileData.Length);
+    byte[] buffer = new byte[fileLen];
+    for(int slen = 0; slen < AssetBundleDefine.ASSET_BUNDLE_OFFSET; slen++) {
+        buffer[slen] = 1;
+    }
+    for(int slen = 0; slen < fileData.Length; slen++) {
+        buffer[slen + AssetBundleDefine.ASSET_BUNDLE_OFFSET] = fileData[slen];
+    }
+    FileStream fs = File.OpenWrite(filePath);
+    fs.Write(buffer, 0, fileLen);
+    fs.Close();
+}
+```
+
+2、解密
+
+```csharp
+AB.LoadFromFileAsync(abPath, 0, offset);
+```
 
 # 代码裁剪类的ID
 
