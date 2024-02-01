@@ -18,6 +18,10 @@ namespace Wsh.AssetBundles.Editor {
             }
             m_dicAssetsBundles.Clear();
         }
+
+        private static string GetMd5Name(string fileName) {
+            return MD5Calculater.GetTextMD5(fileName);
+        }
         
         public static void BuildAssetBundles(string resRootDir, string outputDir, PlatformType buildTarget,
             bool isClearOutputDir, bool isCopyAssetStreaming, CompressOptionsType compressOption, string version) {
@@ -59,7 +63,7 @@ namespace Wsh.AssetBundles.Editor {
                     int index = fileInAsstsPathWithoutExtension.IndexOf('/');
                     string filePathInRes = fileInAsstsPathWithoutExtension.Substring(index + 1,
                         fileInAsstsPathWithoutExtension.Length - index - 1);
-                    string assetBundleName = MD5Calculater.GetTextMD5(fileInAsstsPathWithoutExtension);
+                    string assetBundleName = GetMd5Name(fileInAsstsPathWithoutExtension);
                     // Log.Info(filePaths[i], fileInAsstsPath, fileInAsstsPathWithoutExtension, filePathInRes, assetBundleName);
                     ABDependenciesInfo dependenciesInfo = new ABDependenciesInfo("Assets/" + fileInAsstsPath);
                     // 获取资源及其依赖的资源
@@ -71,7 +75,7 @@ namespace Wsh.AssetBundles.Editor {
                         fileInAsstsPathWithoutExt = fileInAsstsPathWithoutExt.Substring(depIndex + 1,
                             fileInAsstsPathWithoutExt.Length - depIndex - 1);
                         
-                        string dependencyAssetBundleName = MD5Calculater.GetTextMD5(fileInAsstsPathWithoutExt);
+                        string dependencyAssetBundleName = GetMd5Name(fileInAsstsPathWithoutExt);
                         // Log.Info("--", dependencies[j], fileInAsstsPathWithoutExt, dependencyAssetBundleName);
                         dependenciesInfo.Add(dependencies[j]);
                         if(!m_dicAssetsBundles.ContainsKey(dependencyAssetBundleName)) {
@@ -190,7 +194,6 @@ namespace Wsh.AssetBundles.Editor {
             FileInfo[] files = directoryInfo.GetFiles();
             for(int i = 0; i < files.Length; i++) {
                 if(IsAssetBundle(files[i])) {
-                    Log.Info(files[i].FullName);
                     EncryptAB(files[i].FullName);
                 }
             }

@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.U2D;
 using AB = UnityEngine.AssetBundle;
+using Object = UnityEngine.Object;
 
 namespace Wsh.AssetBundles {
     
     public class AssetBundleManager : MonoBehaviour {
-
-        private const string RES_ROOT = "Res/";
         
         private AB m_mainAB;
         private AssetBundleManifest m_manifest;
@@ -25,7 +25,6 @@ namespace Wsh.AssetBundles {
                     m_instance = go.AddComponent<AssetBundleManager>();
                     DontDestroyOnLoad(go);
                 }
-                
                 return m_instance;
             }
         }
@@ -78,17 +77,41 @@ namespace Wsh.AssetBundles {
                 }
             }
         }
+
+        public void UnloadBundle(string path) {
+            string bundleName = MD5Calculater.GetTextMD5(AssetBundleDefine.RES_ROOT + path);
+            if(m_abDic.ContainsKey(bundleName)) {
+                m_abDic[bundleName].Unload(false);
+                m_abDic.Remove(bundleName);
+            }
+        }
+
+        public void UnloadAllBundle(bool isUnloadMainBundle = false) {
+            if(isUnloadMainBundle) {
+                m_mainAB.Unload(false);
+                m_mainAB = null;
+                m_manifest = null;
+            }
+            foreach(var key in m_abDic.Keys) {
+                m_abDic[key].Unload(false);
+            }
+            m_abDic.Clear();
+        }
         
-        public void GetPrefab(string path, Action<GameObject> onFinish) {
+        public string GetResName(string path) {
             int index = path.LastIndexOf('/');
-            string prefabName = path.Substring(index+1, path.Length - index - 1);
-            Log.Info("GetPrefab", prefabName);
-            string bundleName = MD5Calculater.GetTextMD5(RES_ROOT + path);
+            return path.Substring(index+1, path.Length - index - 1);
+        }
+
+        private void LoadResAsync<T>(string path, Action<T> onFinish) where T : Object {
+            string resName = GetResName(path);
+            string bundleName = MD5Calculater.GetTextMD5(AssetBundleDefine.RES_ROOT + path);
             string[] dependencies = m_manifest.GetAllDependencies(bundleName);
             LoadBundle(bundleName, bundle => {
-                m_abDic.Add(path, bundle);
+                // m_abDic.Add(path, bundle);
                 StartCoroutine(GetDependenciesBundles(dependencies, () => {
-                    onFinish?.Invoke(bundle.LoadAsset<GameObject>(prefabName));
+                    Log.Info("load res success.", "res name", resName, "res type", typeof(T));
+                    onFinish?.Invoke(bundle.LoadAsset<T>(resName));
                 }));
             });
         }
@@ -96,7 +119,7 @@ namespace Wsh.AssetBundles {
         private IEnumerator GetDependenciesBundles(string[] dependencies, Action onFinish) {
             int count = dependencies.Length;
             for(int i = 0; i < dependencies.Length; i++) {
-                string name = dependencies[i];
+                Log.Info("dependencies", dependencies[i]);
                 StartCoroutine(IELoadBundle(dependencies[i], bundle => {
                     count--;
                 }));
@@ -105,6 +128,34 @@ namespace Wsh.AssetBundles {
                 yield return null;
             }
             onFinish?.Invoke();
+        }
+
+        public void LoadPrefabAsync(string path, Action<GameObject> onFinish) {
+            LoadResAsync<GameObject>(path, onFinish);
+        }
+
+        public void LoadTexture2DAsync(string path, Action<Texture2D> onFinish) {
+            LoadResAsync<Texture2D>(path, onFinish);
+        }
+        
+        public void LoadTextureAsync(string path, Action<Texture> onFinish) {
+            LoadResAsync<Texture>(path, onFinish);
+        }
+
+        public void LoadFontAsync(string path, Action<Font> onFinish) {
+            LoadResAsync<Font>(path, onFinish);
+        }
+
+        public void LoadAudioClipAsync(string path, Action<AudioClip> onFinish) {
+            LoadResAsync<AudioClip>(path, onFinish);
+        }
+
+        public void LoadTextAssetAsync(string path, Action<TextAsset> onFinish) {
+            LoadResAsync(path, onFinish);
+        }
+
+        public void LoadSpriteAtlasAsync(string path, Action<SpriteAtlas> onFinish) {
+            LoadResAsync<SpriteAtlas>(path, onFinish);
         }
         
     }
