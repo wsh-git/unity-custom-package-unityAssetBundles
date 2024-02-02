@@ -2,6 +2,7 @@
     public class AssetBundleDefine {
         public const string ASSET_BUNDLE_COMPARE_INFO_SLIP_CHAR = " ";
         public const string ASSET_BUNDLE_COMPARE_FILE_SLIP_CHAR = "\n";
+        public const string ASSET_BUNDLE_VERSION_FILE_NAME = "Version.txt";
         public const string ASSET_BUNDLE_COMPARE_FILE_NAME = "AssetBundleCompareFile.txt";
         public const string ASSET_BUNDLE_COMPARE_TEMP_FILE_NAME = "AssetBundleCompareFile_Temp.txt";
         

@@ -217,17 +217,19 @@ namespace Wsh.AssetBundles.Editor {
                     sb.Append(files[i].Length);
                     sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_INFO_SLIP_CHAR);
                     sb.Append(MD5Calculater.GetFileMD5(files[i].FullName));
-                    if (i < (files.Length - 1)) {
-                        sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_FILE_SLIP_CHAR);
-                    }
+                    sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_FILE_SLIP_CHAR);
                     // Log.Info("Name", files[i].Name, "FullName", files[i].FullName, "Extension", files[i].Extension, "Length", files[i].Length);
                 }
             }
             if(isError) {
                 return;
             }
+            string str = sb.ToString();
+            if(str.EndsWith(AssetBundleDefine.ASSET_BUNDLE_COMPARE_FILE_SLIP_CHAR)) {
+                str = str.Substring(0, str.Length - AssetBundleDefine.ASSET_BUNDLE_COMPARE_FILE_SLIP_CHAR.Length);
+            }
             string filePath = Path.Combine(bundleOutputPath, AssetBundleDefine.ASSET_BUNDLE_COMPARE_FILE_NAME);
-            File.WriteAllText(filePath, sb.ToString());
+            File.WriteAllText(filePath, str);
         }
         
         private static void CopyDirectory(string bundleOutputPath, string targetPath, string[] ignoreList) {

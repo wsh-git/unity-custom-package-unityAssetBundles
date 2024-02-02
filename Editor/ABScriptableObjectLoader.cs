@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Wsh.AssetBundles.Editor {
     
-    public class ABScriptableObjectLoader : MonoBehaviour {
+    public class ABScriptableObjectLoader {
 
         private string SCRIPTABLEOBJECT_PATH = "Assets/ABMainWindowScriptableObject.asset";
 
