@@ -109,3 +109,33 @@ https://docs.unity3d.com/Manual/ClassIDReference.html
     </assembly>
 </linker>
 ```
+
+# 热更新下载流程
+
+## 1、检测对比资源版本号
+
+### a. 获取本地资源版本号
+
+先检测PersistentDataPath目录下的版本号文件，如果不存在，则从AssetSteamingPath获取，打包时，在AssetSteamingPath 中有默认的资源版本号文件、对比文件、以及默认资源AssetBundle包；
+
+### b. 获取服务器当前资源版本号
+
+### c. 对比版本号
+
+## 2、对比文件检测
+
+### a. 获取本地的对比文件
+
+先检测PersistentDataPath目录下茶渣，如果不存在，则从AssetSteamingPath获取；
+
+### b. 下载获取服务器端的对比文件
+
+### c. 对比两边的对比文件
+
+### d. 获取需要下载的AssetBundle信息列表；
+
+## 3、AssetBunble更新
+
+### a. 根据更新列表下载文件
+
+### b. 资源文件、对比文件覆盖到本地
