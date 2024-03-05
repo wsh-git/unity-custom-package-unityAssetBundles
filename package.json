@@ -6,7 +6,7 @@
   "keywords": [
     "AssetBundles"
   ],
-  "description": "This is a very base assetbundles.",
+  "description": "This is a very base assetbundles.\n\n\u4f9d\u8d56\u9879\uff1a\n    https://gitee.com/kevinwei133506/unity-custom-package-unity-log.git\n    https://gitee.com/kevinwei133506/unity-custom-package-unity-singleton.git\n    wsh.net",
   "repository": {
     "url": "https://github.com/wsh-git/unity-custom-package-unityAssetBundles.git",
     "type": "git",

@@ -2,7 +2,9 @@
     "name": "Wsh.AssetBundles",
     "rootNamespace": "",
     "references": [
-        "GUID:edaf78f30c77a1c4ca672d7f4accd7f4"
+        "GUID:edaf78f30c77a1c4ca672d7f4accd7f4",
+        "GUID:3d65bebcbc7236642bfdac2f43e1e26e",
+        "GUID:8b3793c9f054bb447a01469cf6fd8f6e"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

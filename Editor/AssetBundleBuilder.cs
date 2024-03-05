@@ -24,7 +24,7 @@ namespace Wsh.AssetBundles.Editor {
         }
         
         public static void BuildAssetBundles(string resRootDir, string outputDir, PlatformType buildTarget,
-            bool isClearOutputDir, bool isCopyAssetStreaming, CompressOptionsType compressOption, string version) {
+            bool isClearOutputDir, bool isCopyAssetStreaming, CompressOptionsType compressOption, int version) {
             if(!Directory.Exists(resRootDir)) {
                 Log.Error("res root directory not exists.", resRootDir);
                 return;
@@ -110,9 +110,9 @@ namespace Wsh.AssetBundles.Editor {
             Log.Info("Build AssetBundles Success.");
         }
 
-        private static void CreateVersionFile(string bundleOutputPath, string version) {
+        private static void CreateVersionFile(string bundleOutputPath, int version) {
             string filePath = Path.Combine(bundleOutputPath, "Version.txt");
-            File.WriteAllText(filePath, version);
+            File.WriteAllText(filePath, version.ToString());
         }
         
         private static void RevertAllFilesBundleName() {

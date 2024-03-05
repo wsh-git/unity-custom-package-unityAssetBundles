@@ -7,37 +7,41 @@ using UnityEngine.Networking;
 using UnityEngine.U2D;
 using AB = UnityEngine.AssetBundle;
 using Object = UnityEngine.Object;
+using Wsh.Singleton;
 
 namespace Wsh.AssetBundles {
     
-    public class AssetBundleManager : MonoBehaviour {
+    public class AssetBundleManager : Singleton<AssetBundleManager>, ISingleton {
         
         private AB m_mainAB;
         private AssetBundleManifest m_manifest;
         private Dictionary<string, AB> m_abDic;
 
-        private static AssetBundleManager m_instance;
-
-        public static AssetBundleManager Instance {
-            get {
-                if(m_instance == null) {
-                    GameObject go = new GameObject("__AssetBundleManager");
-                    m_instance = go.AddComponent<AssetBundleManager>();
-                    DontDestroyOnLoad(go);
-                }
-                return m_instance;
-            }
-        }
-
-        public void Init(Action onFinish) {
+        public void OnInit() {
             m_abDic = new Dictionary<string, AB>();
+        }
+        
+        public void OnDeinit() {
+            m_abDic.Clear();
+        }
+        
+        public void InitAsync(Action onFinish) {
             LoadBundle(PlatformUtils.Platform, ab => {
                 m_mainAB = ab;
                 m_manifest = ab.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
                 onFinish?.Invoke();
             });
         }
-
+        
+        private string GetAssetBundlePath(string bundleName) {
+            string localPersistentDataPath = Path.Combine(PlatformUtils.PersistentDataPathWithStream, bundleName);
+            if(File.Exists(localPersistentDataPath)) {
+                return Path.Combine(PlatformUtils.PersistentDataPathWithStream, bundleName);
+            } else {
+                return Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName); // Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
+            }
+        }
+        
         private void LoadBundle(string bundleName, Action<AB> onFinish) {
             StartCoroutine(IELoadBundle(bundleName, onFinish));
         }
@@ -46,7 +50,7 @@ namespace Wsh.AssetBundles {
             if(m_abDic.ContainsKey(bundleName)) {
                 onFinish?.Invoke(m_abDic[bundleName]);
             } else {
-                string abPath = Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
+                string abPath = GetAssetBundlePath(bundleName);
                 bool isWeb = false;
 #if UNITY_EDITOR
                 isWeb = false;

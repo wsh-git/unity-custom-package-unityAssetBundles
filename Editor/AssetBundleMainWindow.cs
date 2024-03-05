@@ -19,13 +19,14 @@ namespace Wsh.AssetBundles.Editor {
         
         public string ResRootDir { get { return m_resRootDir; } }
         public string OutputDir { get { return m_outputPath; } }
-        public string Version { get { return m_version; } }
+        public int Version { get { return m_version; } }
         public PlatformType BuildTarget { get { return m_buildTargetType; } }
         public bool IsClearOutputDir { get { return m_isClearOutputDir; } }
         public bool IsCopyAssetStreaming { get { return m_isCopyAssetStreaming; } }
         public CompressOptionsType CompressOptionsType { get { return m_compressOptionsType; }}
         public string UploadDir { get { return m_uploadDir; } }
         public string ServerIp { get { return m_serverIp; } }
+        // 远程目录文件夹
         public string OriginalDir { get { return m_originalDir; } }
         public PlatformType UploadTargetType { get { return m_uploadTargetType; } }
         public string Account { get { return m_account; } }
@@ -35,7 +36,7 @@ namespace Wsh.AssetBundles.Editor {
         private string m_resRootDir;
         private PlatformType m_buildTargetType;
         private string m_outputPath;
-        private string m_version;
+        private int m_version;
         private bool m_isClearOutputDir;
         private bool m_isCopyAssetStreaming;
         private CompressOptionsType m_compressOptionsType;
@@ -162,7 +163,7 @@ namespace Wsh.AssetBundles.Editor {
             GUILayout.BeginHorizontal();
             GUILayout.Space(FIRST_SPACE);
             GUILayout.Label("资源版本号:", GUILayout.Width(100));
-            m_version = EditorGUILayout.TextField(m_version);
+            m_version = EditorGUILayout.IntField(m_version);
             GUILayout.EndHorizontal();
             #endregion
             
