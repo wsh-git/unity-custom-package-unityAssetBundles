@@ -33,12 +33,15 @@ namespace Wsh.AssetBundles {
             });
         }
         
-        private string GetAssetBundlePath(string bundleName) {
+        private string GetAssetBundlePath(string bundleName, bool isWeb) {
+            if(isWeb) {
+                return Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
+            }
             string localPersistentDataPath = Path.Combine(PlatformUtils.PersistentDataPathWithStream, bundleName);
             if(File.Exists(localPersistentDataPath)) {
                 return Path.Combine(PlatformUtils.PersistentDataPathWithStream, bundleName);
             } else {
-                return Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName); // Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
+                return Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
             }
         }
         
@@ -50,7 +53,6 @@ namespace Wsh.AssetBundles {
             if(m_abDic.ContainsKey(bundleName)) {
                 onFinish?.Invoke(m_abDic[bundleName]);
             } else {
-                string abPath = GetAssetBundlePath(bundleName);
                 bool isWeb = false;
 #if UNITY_EDITOR
                 isWeb = false;
@@ -59,6 +61,7 @@ namespace Wsh.AssetBundles {
 #else
                 isWeb = false;
 #endif
+                string abPath = GetAssetBundlePath(bundleName, isWeb);
                 if(isWeb) {
                     UnityWebRequest webReq = UnityWebRequestAssetBundle.GetAssetBundle(abPath);
                     yield return webReq.SendWebRequest();
