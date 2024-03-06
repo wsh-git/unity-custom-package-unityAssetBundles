@@ -16,7 +16,9 @@ namespace Wsh.AssetBundles {
                 Log.Info("0 Start check assetBundle version.");
                 string versionUrl = platformResUrl + AssetBundleDefine.ASSET_BUNDLE_VERSION_FILE_NAME;
                 bool isContinue = false;
-                Log.Info("1 (1/2) Start check exist version file.");
+                
+                // Http.IsExist() 在Android手机上不适用
+                /*Log.Info("1 (1/2) Start check exist version file.");
                 Http.IsExist(versionUrl, res => {
                     Log.Info(res.IsSuccess, res.StatusCode, res.Message);
                     if(res.IsSuccess) {
@@ -37,14 +39,15 @@ namespace Wsh.AssetBundles {
                     yield return null;
                 }
                 
-                isContinue = false;
+                isContinue = false;*/
+                
                 if(updateInfo.Status == AssetBundleUpdateStatus.Next) {
-                    Log.Info("2 (1/2) Start request remote version file.");
+                    Log.Info("1 (1/2) Start request remote version file.");
                     UnityWebRequestManager.Instance.RequestText(versionUrl, null, res => {
                         if(res.IsSuccess) {
                             updateInfo.SetVersion(res.Text);
                             isContinue = true;
-                            Log.Info("2 (2/2) remote version file.", updateInfo.Version);
+                            Log.Info("1 (2/2) remote version file.", updateInfo.Version);
                         } else {
                             Log.Error("Request version.txt. error:", res.Result, res.Message);
                         }
@@ -55,14 +58,14 @@ namespace Wsh.AssetBundles {
                     }
                     
                     isContinue = false;
-                    Log.Info("3 (1/2) Start request local version file.");
+                    Log.Info("2 (1/2) Start request local version file.");
                     string localVersionFilePath = Path.Combine(PlatformUtils.PersistentDataPathWithStream, AssetBundleDefine.ASSET_BUNDLE_VERSION_FILE_NAME);
                     if(File.Exists(localVersionFilePath)) {
                         Log.Info(PlatformUtils.PersistentDataPathWithStream);
                         string localVersionFileReqPath = Path.Combine(PlatformUtils.PersistentDataPath, AssetBundleDefine.ASSET_BUNDLE_VERSION_FILE_NAME);
                         UnityWebRequestManager.Instance.RequestText(localVersionFileReqPath, null, res => {
                             if(res.IsSuccess) {
-                                Log.Info("3 (2/2) request local version file success.", res.Text);
+                                Log.Info("2 (2/2) request local version file success.", res.Text);
                                 int localVersion = 0;
                                 try {
                                     localVersion = int.Parse(res.Text);
@@ -85,7 +88,7 @@ namespace Wsh.AssetBundles {
                             yield return null;
                         }
                     } else {
-                        Log.Info("3 (2/2) local version file not exist.");
+                        Log.Info("2 (2/2) local version file not exist.");
                         Finish(updateInfo);
                     }
                 } else {

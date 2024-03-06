@@ -8,7 +8,7 @@ namespace Wsh.AssetBundles.Editor {
     public class AssetBundleUploader {
         
         public static async void Upload(string dirPath, string serverIp, string originalDir, PlatformType uploadPlatformType, string account, string passward) {
-            string remoteDirUrl = serverIp + "/" + originalDir;
+            string remoteDirUrl = serverIp + "/" + originalDir + "/" + uploadPlatformType.ToString();
             Http.IsExist(remoteDirUrl, response => {
                 Log.Info(response.IsSuccess, response.StatusCode, response.Message);
                 if(response.IsSuccess) {
