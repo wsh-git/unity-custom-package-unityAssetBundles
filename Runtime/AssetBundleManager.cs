@@ -16,13 +16,15 @@ namespace Wsh.AssetBundles {
         private AB m_mainAB;
         private AssetBundleManifest m_manifest;
         private Dictionary<string, AB> m_abDic;
+        private Dictionary<string, int> m_abDependCountDic;
 
         public void OnInit() {
             m_abDic = new Dictionary<string, AB>();
+            m_abDependCountDic = new Dictionary<string, int>();
         }
         
         public void OnDeinit() {
-            m_abDic.Clear();
+            UnloadAllBundle(true);
         }
         
         public void InitAsync(Action onFinish) {
@@ -45,12 +47,17 @@ namespace Wsh.AssetBundles {
             }
         }
         
+        private string GetAssetBundleName(string path){
+            return MD5Calculater.GetTextMD5(AssetBundleDefine.RES_ROOT + path);
+        }
+        
         private void LoadBundle(string bundleName, Action<AB> onFinish) {
             StartCoroutine(IELoadBundle(bundleName, onFinish));
         }
         
         private IEnumerator IELoadBundle(string bundleName, Action<AB> onFinish) {
             if(m_abDic.ContainsKey(bundleName)) {
+                TryAddAssetBundleDependCount(bundleName);
                 onFinish?.Invoke(m_abDic[bundleName]);
             } else {
                 bool isWeb = false;
@@ -70,7 +77,7 @@ namespace Wsh.AssetBundles {
                             Log.Error("Error downloading AssetBundle:", webReq.error);
                         } else {
                             AB ab = DownloadHandlerAssetBundle.GetContent(webReq);
-                            m_abDic.Add(bundleName, ab);
+                            AddBundle(bundleName, ab);
                             onFinish?.Invoke(ab);
                         }
                     }
@@ -79,18 +86,54 @@ namespace Wsh.AssetBundles {
                     AssetBundleCreateRequest req = AB.LoadFromFileAsync(abPath, 0, (ulong)offset);
                     yield return req;
                     if(req.isDone) {
-                        m_abDic.Add(bundleName, req.assetBundle);
+                        AddBundle(bundleName, req.assetBundle);
                         onFinish?.Invoke(req.assetBundle);
                     }
                 }
             }
         }
 
+        private void AddBundle(string bundleName, AB assetBundle) {
+            m_abDic.Add(bundleName, assetBundle);
+            TryAddAssetBundleDependCount(bundleName);
+        }
+
+        private void TryAddAssetBundleDependCount(string bundleName) {
+            if(!m_abDependCountDic.ContainsKey(bundleName)) {
+                m_abDependCountDic.Add(bundleName, 0);
+            }
+            m_abDependCountDic[bundleName]++;
+        }
+
+        private void TryRemoveAssetBundleDependCount(string bundleName) {
+            if(m_abDependCountDic.ContainsKey(bundleName) && m_abDependCountDic[bundleName] > 0) {
+                m_abDependCountDic[bundleName]--;
+            }
+        }
+
+        private int GetAssetBundleDependCount(string bundleName) {
+            if(m_abDependCountDic.ContainsKey(bundleName)) {
+                return m_abDependCountDic[bundleName];
+            }
+            return 0;
+        }
+        
         public void UnloadBundle(string path) {
-            string bundleName = MD5Calculater.GetTextMD5(AssetBundleDefine.RES_ROOT + path);
-            if(m_abDic.ContainsKey(bundleName)) {
-                m_abDic[bundleName].Unload(false);
-                m_abDic.Remove(bundleName);
+            string bundleName = GetAssetBundleName(path);
+            TryUnloadBundle(bundleName);
+            string[] dependencies = m_manifest.GetAllDependencies(bundleName);
+            for(int i = 0; i < dependencies.Length; i++) {
+                TryUnloadBundle(dependencies[i]);
+            }
+        }
+
+        private void TryUnloadBundle(string bundleName) {
+            TryRemoveAssetBundleDependCount(bundleName);
+            if(GetAssetBundleDependCount(bundleName) == 0) {
+                if(m_abDic.ContainsKey(bundleName)) {
+                    m_abDic[bundleName].Unload(false);
+                    m_abDic.Remove(bundleName);
+                }
             }
         }
 
@@ -104,6 +147,7 @@ namespace Wsh.AssetBundles {
                 m_abDic[key].Unload(false);
             }
             m_abDic.Clear();
+            m_abDependCountDic.Clear();
         }
         
         public string GetResName(string path) {
@@ -113,7 +157,7 @@ namespace Wsh.AssetBundles {
 
         private void LoadResAsync<T>(string path, Action<T> onFinish) where T : Object {
             string resName = GetResName(path);
-            string bundleName = MD5Calculater.GetTextMD5(AssetBundleDefine.RES_ROOT + path);
+            string bundleName = GetAssetBundleName(path);
             string[] dependencies = m_manifest.GetAllDependencies(bundleName);
             LoadBundle(bundleName, bundle => {
                 // m_abDic.Add(path, bundle);
