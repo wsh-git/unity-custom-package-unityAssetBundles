@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEngine;
 
 namespace Wsh.AssetBundles.Editor {
     
@@ -26,6 +27,20 @@ namespace Wsh.AssetBundles.Editor {
                 return BuildTarget.WebGL;
             }
             return BuildTarget.StandaloneWindows64;
+        }
+
+        public static void GetDependencies(GameObject obj) {
+            if(obj != null) {
+                string objPath = AssetDatabase.GetAssetPath(obj);
+                string[] dependencies = AssetDatabase.GetDependencies(objPath);
+                int index = 0;
+                for(int i = 0; i < dependencies.Length; i++) {
+                    if(!dependencies[i].EndsWith(".cs") && dependencies[i] != objPath) {
+                        index++;
+                        Log.Info(index, dependencies[i]);
+                    }
+                }
+            }
         }
         
     }

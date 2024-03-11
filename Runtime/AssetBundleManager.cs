@@ -47,8 +47,12 @@ namespace Wsh.AssetBundles {
             }
         }
         
-        private string GetAssetBundleName(string path){
-            return MD5Calculater.GetTextMD5(AssetBundleDefine.RES_ROOT + path);
+        private string GetAssetBundleName(string path, bool isRes = true){
+            if(isRes) {
+                return MD5Calculater.GetTextMD5(AssetBundleDefine.RES_ROOT + path);
+            } else {
+                return MD5Calculater.GetTextMD5(path);
+            }
         }
         
         private void LoadBundle(string bundleName, Action<AB> onFinish) {
@@ -105,10 +109,12 @@ namespace Wsh.AssetBundles {
             m_abDependCountDic[bundleName]++;
         }
 
-        private void TryRemoveAssetBundleDependCount(string bundleName) {
+        private bool TryRemoveAssetBundleDependCount(string bundleName) {
             if(m_abDependCountDic.ContainsKey(bundleName) && m_abDependCountDic[bundleName] > 0) {
                 m_abDependCountDic[bundleName]--;
+                return true;
             }
+            return false;
         }
 
         private int GetAssetBundleDependCount(string bundleName) {
@@ -117,24 +123,27 @@ namespace Wsh.AssetBundles {
             }
             return 0;
         }
-        
+
         public void UnloadBundle(string path) {
             string bundleName = GetAssetBundleName(path);
-            TryUnloadBundle(bundleName);
-            string[] dependencies = m_manifest.GetAllDependencies(bundleName);
-            for(int i = 0; i < dependencies.Length; i++) {
-                TryUnloadBundle(dependencies[i]);
+            bool isActive = TryUnloadBundle(bundleName);
+            if(isActive) {
+                string[] dependencies = m_manifest.GetAllDependencies(bundleName);
+                for(int i = 0; i < dependencies.Length; i++) {
+                    TryUnloadBundle(dependencies[i]);
+                }
             }
         }
 
-        private void TryUnloadBundle(string bundleName) {
-            TryRemoveAssetBundleDependCount(bundleName);
+        private bool TryUnloadBundle(string bundleName) {
+            bool isActive = TryRemoveAssetBundleDependCount(bundleName);
             if(GetAssetBundleDependCount(bundleName) == 0) {
                 if(m_abDic.ContainsKey(bundleName)) {
                     m_abDic[bundleName].Unload(false);
                     m_abDic.Remove(bundleName);
                 }
             }
+            return isActive;
         }
 
         public void UnloadAllBundle(bool isUnloadMainBundle = false) {
@@ -155,6 +164,17 @@ namespace Wsh.AssetBundles {
             return path.Substring(index+1, path.Length - index - 1);
         }
 
+
+        public int GetDependCount(string path, bool isRes = true) {
+            string bundleName = GetAssetBundleName(path, isRes);
+            return GetAssetBundleDependCount(bundleName);
+        }
+        
+        public bool IsExistAssetBundle(string path, bool isRes = true) {
+            string bundleName = GetAssetBundleName(path, isRes);
+            return m_abDic.ContainsKey(bundleName);
+        }
+        
         private void LoadResAsync<T>(string path, Action<T> onFinish) where T : Object {
             string resName = GetResName(path);
             string bundleName = GetAssetBundleName(path);

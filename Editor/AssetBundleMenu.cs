@@ -9,5 +9,10 @@ namespace Wsh.AssetBundles.Editor {
             AssetBundleMainWindow.ShowWindow();
         }
         
+        [MenuItem("AssetBundleTool/GetDependencies", priority = 3)]
+        public static void GetDependencies() {
+            AssetBundleEditorHelper.GetDependencies(Selection.activeGameObject);
+        }
+        
     }
 }
