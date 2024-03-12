@@ -11,22 +11,22 @@ using Wsh.Singleton;
 
 namespace Wsh.AssetBundles {
     
-    public class AssetBundleManager : Singleton<AssetBundleManager>, ISingleton {
+    public class AssetBundleManager : MonoSingleton<AssetBundleManager> {
         
         private AB m_mainAB;
         private AssetBundleManifest m_manifest;
         private Dictionary<string, AB> m_abDic;
         private Dictionary<string, int> m_abDependCountDic;
 
-        public void OnInit() {
+        protected override void OnInit() {
             m_abDic = new Dictionary<string, AB>();
             m_abDependCountDic = new Dictionary<string, int>();
         }
         
-        public void OnDeinit() {
+        protected override void OnDeinit() {
             UnloadAllBundle(true);
         }
-        
+
         public void InitAsync(Action onFinish) {
             LoadBundle(PlatformUtils.Platform, ab => {
                 m_mainAB = ab;

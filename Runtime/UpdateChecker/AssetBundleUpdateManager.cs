@@ -4,16 +4,7 @@ using Wsh.Singleton;
 
 namespace Wsh.AssetBundles {
     
-    public class AssetBundleUpdateManager : Singleton<AssetBundleUpdateManager>, ISingleton {
-        
-
-        public void OnInit() {
-            
-        }
-        
-        public void OnDeinit() {
-            
-        }
+    public class AssetBundleUpdateManager : MonoSingleton<AssetBundleUpdateManager> {
 
         public void CheckHotUpdate(string resUrl, Action<float, float> onLoad, Action onFinish) {
             string platformResUrl = resUrl + "/" + PlatformUtils.Platform + "/";
