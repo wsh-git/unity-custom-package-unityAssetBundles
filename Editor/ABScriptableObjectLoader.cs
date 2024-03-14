@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -6,7 +7,9 @@ namespace Wsh.AssetBundles.Editor {
     
     public class ABScriptableObjectLoader {
 
-        private string SCRIPTABLEOBJECT_PATH = "Assets/ABMainWindowScriptableObject.asset";
+        private const string SCRIPTABLEOBJECT_FOLDER = "Assets/WshConfig/";
+
+        private const string SCRIPTABLEOBJECT_PATH = SCRIPTABLEOBJECT_FOLDER + "ABMainWindowScriptableObject.asset";
 
         public ABMainScriptableObject LoadABMainScriptableObject() {
             ABMainScriptableObject scriptableObject = AssetDatabase.LoadAssetAtPath<ABMainScriptableObject>(SCRIPTABLEOBJECT_PATH);
@@ -39,9 +42,16 @@ namespace Wsh.AssetBundles.Editor {
         
         private void TryCreateScriptableObject() {
             ABMainScriptableObject scriptableObject = ScriptableObject.CreateInstance<ABMainScriptableObject>();
+            TryCreateFolder();
             AssetDatabase.CreateAsset(scriptableObject, SCRIPTABLEOBJECT_PATH);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+        
+        private void TryCreateFolder() {
+            if(!Directory.Exists(SCRIPTABLEOBJECT_FOLDER)) {
+                Directory.CreateDirectory(SCRIPTABLEOBJECT_FOLDER);
+            }
         }
         
         public void CheckScriptableObject() {
