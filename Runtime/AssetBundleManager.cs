@@ -228,6 +228,10 @@ namespace Wsh.AssetBundles {
         public void LoadSpriteAtlasAsync(string path, Action<SpriteAtlas> onFinish) {
             LoadResAsync<SpriteAtlas>(path, onFinish);
         }
+
+        public void LoadScriptableObjectAsync<T>(string path, Action<T> onFinish) where T : ScriptableObject  {
+            LoadResAsync<T>(path, onFinish);
+        }
         
     }
     
