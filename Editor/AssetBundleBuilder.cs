@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -24,7 +23,7 @@ namespace Wsh.AssetBundles.Editor {
         }
         
         public static void BuildAssetBundles(string resRootDir, string outputDir, PlatformType buildTarget,
-            bool isClearOutputDir, bool isCopyAssetStreaming, CompressOptionsType compressOption, int version) {
+            bool isClearOutputDir, bool isCopyAssetStreaming, CompressOptionsType compressOption, int version, string[] blackDirList) {
             if(!Directory.Exists(resRootDir)) {
                 Log.Error("res root directory not exists.", resRootDir);
                 return;
@@ -50,8 +49,7 @@ namespace Wsh.AssetBundles.Editor {
                 ClearDirectory(streamingAssetsPath); 
             }
 
-            string[] filePaths = Directory.GetFiles(resRootDir, "*.*", SearchOption.AllDirectories);
-            
+            string[] filePaths = Directory.GetFiles(resRootDir, "*.*", SearchOption.AllDirectories);            
             string dataPath = Application.dataPath;
             int subStartIndex = dataPath.Length + 1;
             for(int i = 0; i < filePaths.Length; i++) {
@@ -67,7 +65,7 @@ namespace Wsh.AssetBundles.Editor {
                     // Log.Info(filePaths[i], fileInAsstsPath, fileInAsstsPathWithoutExtension, filePathInRes, assetBundleName);
                     ABDependenciesInfo dependenciesInfo = new ABDependenciesInfo("Assets/" + fileInAsstsPath);
                     // 获取资源及其依赖的资源
-                    string[] dependencies = GetDependencies(fileInAsstsPath);
+                    string[] dependencies = GetDependencies(fileInAsstsPath, blackDirList);
                     // Log.Info("-", dependencies.Length);
                     for(int j = 0; j < dependencies.Length; j++) {
                         string fileInAsstsPathWithoutExt = dependencies[j].Substring(0, dependencies[j].LastIndexOf('.'));
@@ -121,16 +119,26 @@ namespace Wsh.AssetBundles.Editor {
             }
         }
         
-        private static string[] GetDependencies(string fileInAsstsPath) {
+        private static string[] GetDependencies(string fileInAsstsPath, string[] blackDirList) {
             List<string> list = new List<string>();
             string fileInAssets = "Assets/" + fileInAsstsPath;
             string[] dependencies = AssetDatabase.GetDependencies(fileInAssets, true);
             for(int i = 0; i < dependencies.Length; i++) {
-                if(!dependencies[i].EndsWith(".meta") && !dependencies[i].EndsWith(".cs") && !Directory.Exists(dependencies[i]) && dependencies[i] != fileInAssets) {
+                if(!dependencies[i].EndsWith(".meta") && !dependencies[i].EndsWith(".cs") && !Directory.Exists(dependencies[i]) && dependencies[i] != fileInAssets
+                    && !IsBlackDir(dependencies[i], blackDirList)) {
                     list.Add(dependencies[i]);
                 }
             }
             return list.ToArray();
+        }
+        
+        private static bool IsBlackDir(string filePath, string[] blackDirList) {
+            for(int i = 0; i < blackDirList.Length; i++) {
+                if(filePath.Contains(blackDirList[i])) {
+                    return true;
+                }
+            }
+            return false;
         }
         
         private static string GetPathInAssets(string filePath, int subStartIndex) {

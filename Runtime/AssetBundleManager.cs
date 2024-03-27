@@ -233,6 +233,10 @@ namespace Wsh.AssetBundles {
             LoadResAsync<T>(path, onFinish);
         }
         
+        public void LoadMaterialAsync(string path, Action<Material> onFinish) {
+            LoadResAsync<Material>(path, onFinish);
+        }
+
     }
     
 }

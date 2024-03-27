@@ -6,6 +6,7 @@ namespace Wsh.AssetBundles.Editor {
         public string ResRootDir = "";
         public string ABOutputDir = "";
         public int Version = 0;
+        public string BlackDirList = "";
         public PlatformType BuildTarget = PlatformType.PC;
         public bool IsClearOutputDir = true;
         public bool IsCopyAssetStreaming = true;

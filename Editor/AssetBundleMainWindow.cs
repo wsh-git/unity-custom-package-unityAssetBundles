@@ -20,6 +20,7 @@ namespace Wsh.AssetBundles.Editor {
         public string ResRootDir { get { return m_resRootDir; } }
         public string OutputDir { get { return m_outputPath; } }
         public int Version { get { return m_version; } }
+        public string BlackDirList { get {return m_blackDirList;} }
         public PlatformType BuildTarget { get { return m_buildTargetType; } }
         public bool IsClearOutputDir { get { return m_isClearOutputDir; } }
         public bool IsCopyAssetStreaming { get { return m_isCopyAssetStreaming; } }
@@ -37,6 +38,7 @@ namespace Wsh.AssetBundles.Editor {
         private PlatformType m_buildTargetType;
         private string m_outputPath;
         private int m_version;
+        private string m_blackDirList;
         private bool m_isClearOutputDir;
         private bool m_isCopyAssetStreaming;
         private CompressOptionsType m_compressOptionsType;
@@ -90,8 +92,20 @@ namespace Wsh.AssetBundles.Editor {
                 m_account = data.Account;
                 m_password = data.Password;
                 m_version = data.Version;
+                m_blackDirList = data.BlackDirList;
                 m_isInited = true;
             }
+        }
+
+        private string[] GetBlackDirList() {
+            List<string> list = new List<string>();
+            var l = m_blackDirList.Split(';');
+            for(int i = 0; i < l.Length; i++) {
+                if(!string.IsNullOrEmpty(l[i])) {
+                    list.Add(l[i]);
+                }
+            }
+            return list.ToArray();
         }
         
         private void OnEnable() {
@@ -211,6 +225,16 @@ namespace Wsh.AssetBundles.Editor {
             
             GUILayout.Space(10);
 
+            #region Server IP
+                GUILayout.BeginHorizontal();
+                GUILayout.Space(FIRST_SPACE);
+                GUILayout.Label("忽略的目录(多个目录用‘;’分隔开)", GUILayout.Width(200));
+                m_blackDirList = GUILayout.TextField(m_blackDirList, GUILayout.Width(500));
+                GUILayout.EndHorizontal();
+            #endregion
+
+            GUILayout.Space(10);
+
             #region Save Config
             GUILayout.BeginHorizontal();
             if(GUILayout.Button("Save Config", GUILayout.Height(30))) {
@@ -226,7 +250,7 @@ namespace Wsh.AssetBundles.Editor {
             #region Build AssetBundle
             GUILayout.BeginHorizontal();
             if(GUILayout.Button("Build AssetBundle", GUILayout.Height(30))) {
-                AssetBundleBuilder.BuildAssetBundles(ResRootDir, OutputDir, BuildTarget, IsClearOutputDir, IsCopyAssetStreaming, CompressOptionsType, Version);
+                AssetBundleBuilder.BuildAssetBundles(ResRootDir, OutputDir, BuildTarget, IsClearOutputDir, IsCopyAssetStreaming, CompressOptionsType, Version, GetBlackDirList());
             }
             GUILayout.EndHorizontal();
             #endregion

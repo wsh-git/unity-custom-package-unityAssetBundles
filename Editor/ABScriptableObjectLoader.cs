@@ -29,6 +29,7 @@ namespace Wsh.AssetBundles.Editor {
             scriptableObject.IsCopyAssetStreaming = window.IsCopyAssetStreaming;
             scriptableObject.CompressOptionsType = window.CompressOptionsType;
             scriptableObject.Version = window.Version;
+            scriptableObject.BlackDirList = window.BlackDirList;
             scriptableObject.UploadDir = window.UploadDir;
             scriptableObject.ServerIp = window.ServerIp;
             scriptableObject.OriginalDir = window.OriginalDir;
