@@ -27,6 +27,8 @@ namespace Wsh.AssetBundles.Editor {
             scriptableObject.BuildTarget = window.BuildTarget;
             scriptableObject.IsClearOutputDir = window.IsClearOutputDir;
             scriptableObject.IsCopyAssetStreaming = window.IsCopyAssetStreaming;
+            scriptableObject.IsCopyResources = window.IsCopyResources;
+            scriptableObject.LoadType = window.LoadType;
             scriptableObject.CompressOptionsType = window.CompressOptionsType;
             scriptableObject.Version = window.Version;
             scriptableObject.BlackDirList = window.BlackDirList;

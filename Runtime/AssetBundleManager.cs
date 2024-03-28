@@ -10,31 +10,37 @@ using Object = UnityEngine.Object;
 using Wsh.Singleton;
 
 namespace Wsh.AssetBundles {
-    
+
     public class AssetBundleManager : MonoSingleton<AssetBundleManager> {
-        
+
         private AB m_mainAB;
         private AssetBundleManifest m_manifest;
         private Dictionary<string, AB> m_abDic;
         private Dictionary<string, int> m_abDependCountDic;
+        private AssetBundleLoadType m_loadType;
 
         protected override void OnInit() {
             m_abDic = new Dictionary<string, AB>();
             m_abDependCountDic = new Dictionary<string, int>();
         }
-        
+
         protected override void OnDeinit() {
             UnloadAllBundle(true);
         }
 
         public void InitAsync(Action onFinish) {
+            InitAsync(AssetBundleLoadType.StreamingAssets, onFinish);
+        }
+
+        public void InitAsync(AssetBundleLoadType loadType, Action onFinish) {
+            m_loadType = loadType;
             LoadBundle(PlatformUtils.Platform, ab => {
                 m_mainAB = ab;
                 m_manifest = ab.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
                 onFinish?.Invoke();
             });
         }
-        
+
         private string GetAssetBundlePath(string bundleName, bool isWeb) {
             if(isWeb) {
                 return Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
@@ -46,53 +52,63 @@ namespace Wsh.AssetBundles {
                 return Path.Combine(PlatformUtils.StreamingAssetsPathWithStream, bundleName);
             }
         }
-        
-        private string GetAssetBundleName(string path, bool isRes = true){
+
+        private string GetAssetBundleName(string path, bool isRes = true) {
             if(isRes) {
                 return MD5Calculater.GetTextMD5(AssetBundleDefine.RES_ROOT + path);
             } else {
                 return MD5Calculater.GetTextMD5(path);
             }
         }
-        
+
         private void LoadBundle(string bundleName, Action<AB> onFinish) {
             StartCoroutine(IELoadBundle(bundleName, onFinish));
         }
-        
+
+
+
         private IEnumerator IELoadBundle(string bundleName, Action<AB> onFinish) {
             if(m_abDic.ContainsKey(bundleName)) {
                 TryAddAssetBundleDependCount(bundleName);
                 onFinish?.Invoke(m_abDic[bundleName]);
             } else {
-                bool isWeb = false;
+                if(m_loadType == AssetBundleLoadType.StreamingAssets) {
+
+                    bool isWeb = false;
 #if UNITY_EDITOR
-                isWeb = false;
+                    isWeb = false;
 #elif UNITY_WEBGL
                 isWeb = true;
 #else
                 isWeb = false;
 #endif
-                string abPath = GetAssetBundlePath(bundleName, isWeb);
-                if(isWeb) {
-                    UnityWebRequest webReq = UnityWebRequestAssetBundle.GetAssetBundle(abPath);
-                    yield return webReq.SendWebRequest();
-                    if(webReq.isDone) {
-                        if(webReq.result != UnityWebRequest.Result.Success) {
-                            Log.Error("Error downloading AssetBundle:", webReq.error);
-                        } else {
-                            AB ab = DownloadHandlerAssetBundle.GetContent(webReq);
-                            AddBundle(bundleName, ab);
-                            onFinish?.Invoke(ab);
+                    string abPath = GetAssetBundlePath(bundleName, isWeb);
+                    if(isWeb) {
+                        UnityWebRequest webReq = UnityWebRequestAssetBundle.GetAssetBundle(abPath);
+                        yield return webReq.SendWebRequest();
+                        if(webReq.isDone) {
+                            if(webReq.result != UnityWebRequest.Result.Success) {
+                                Log.Error("Error downloading AssetBundle:", webReq.error);
+                            } else {
+                                AB ab = DownloadHandlerAssetBundle.GetContent(webReq);
+                                AddBundle(bundleName, ab);
+                                onFinish?.Invoke(ab);
+                            }
+                        }
+                    } else {
+                        int offset = AssetBundleUtils.GetBundleOffset(bundleName, AssetBundleDefine.ASSET_BUNDLE_OFFSET);
+                        AssetBundleCreateRequest req = AB.LoadFromFileAsync(abPath, 0, (ulong)offset);
+                        yield return req;
+                        if(req.isDone) {
+                            AddBundle(bundleName, req.assetBundle);
+                            onFinish?.Invoke(req.assetBundle);
                         }
                     }
-                } else {
-                    int offset = AssetBundleUtils.GetBundleOffset(bundleName, AssetBundleDefine.ASSET_BUNDLE_OFFSET);
-                    AssetBundleCreateRequest req = AB.LoadFromFileAsync(abPath, 0, (ulong)offset);
-                    yield return req;
-                    if(req.isDone) {
-                        AddBundle(bundleName, req.assetBundle);
-                        onFinish?.Invoke(req.assetBundle);
-                    }
+                } else if(m_loadType == AssetBundleLoadType.Resources) {
+                    var textAsset = Resources.Load<TextAsset>(AssetBundleDefine.RESOURCES_PATH + bundleName);
+                    AB ab = AB.LoadFromMemory(textAsset.bytes);
+                    AddBundle(bundleName, ab);
+                    onFinish?.Invoke(ab);
                 }
             }
         }
@@ -158,10 +174,10 @@ namespace Wsh.AssetBundles {
             m_abDic.Clear();
             m_abDependCountDic.Clear();
         }
-        
+
         public string GetResName(string path) {
             int index = path.LastIndexOf('/');
-            return path.Substring(index+1, path.Length - index - 1);
+            return path.Substring(index + 1, path.Length - index - 1);
         }
 
 
@@ -169,12 +185,12 @@ namespace Wsh.AssetBundles {
             string bundleName = GetAssetBundleName(path, isRes);
             return GetAssetBundleDependCount(bundleName);
         }
-        
+
         public bool IsExistAssetBundle(string path, bool isRes = true) {
             string bundleName = GetAssetBundleName(path, isRes);
             return m_abDic.ContainsKey(bundleName);
         }
-        
+
         private void LoadResAsync<T>(string path, Action<T> onFinish) where T : Object {
             string resName = GetResName(path);
             string bundleName = GetAssetBundleName(path);
@@ -208,7 +224,7 @@ namespace Wsh.AssetBundles {
         public void LoadTexture2DAsync(string path, Action<Texture2D> onFinish) {
             LoadResAsync<Texture2D>(path, onFinish);
         }
-        
+
         public void LoadTextureAsync(string path, Action<Texture> onFinish) {
             LoadResAsync<Texture>(path, onFinish);
         }
@@ -229,14 +245,14 @@ namespace Wsh.AssetBundles {
             LoadResAsync<SpriteAtlas>(path, onFinish);
         }
 
-        public void LoadScriptableObjectAsync<T>(string path, Action<T> onFinish) where T : ScriptableObject  {
+        public void LoadScriptableObjectAsync<T>(string path, Action<T> onFinish) where T : ScriptableObject {
             LoadResAsync<T>(path, onFinish);
         }
-        
+
         public void LoadMaterialAsync(string path, Action<Material> onFinish) {
             LoadResAsync<Material>(path, onFinish);
         }
 
     }
-    
+
 }

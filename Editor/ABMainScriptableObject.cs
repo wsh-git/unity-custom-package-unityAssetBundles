@@ -8,6 +8,8 @@ namespace Wsh.AssetBundles.Editor {
         public int Version = 0;
         public string BlackDirList = "";
         public PlatformType BuildTarget = PlatformType.PC;
+        public AssetBundleLoadType LoadType;
+        public bool IsCopyResources = false;
         public bool IsClearOutputDir = true;
         public bool IsCopyAssetStreaming = true;
         public CompressOptionsType CompressOptionsType = CompressOptionsType.Uncompressed;

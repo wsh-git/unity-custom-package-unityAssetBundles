@@ -24,6 +24,8 @@ namespace Wsh.AssetBundles.Editor {
         public PlatformType BuildTarget { get { return m_buildTargetType; } }
         public bool IsClearOutputDir { get { return m_isClearOutputDir; } }
         public bool IsCopyAssetStreaming { get { return m_isCopyAssetStreaming; } }
+        public bool IsCopyResources { get { return m_isCopyResources;} }
+        public AssetBundleLoadType LoadType { get { return m_loadType;} }
         public CompressOptionsType CompressOptionsType { get { return m_compressOptionsType; }}
         public string UploadDir { get { return m_uploadDir; } }
         public string ServerIp { get { return m_serverIp; } }
@@ -48,6 +50,8 @@ namespace Wsh.AssetBundles.Editor {
         private PlatformType m_uploadTargetType;
         private string m_account;
         private string m_password;
+        private bool m_isCopyResources;
+        private AssetBundleLoadType m_loadType;
         private bool m_isInited;
         private ABScriptableObjectLoader m_scriptableObjLoader;
         
@@ -58,6 +62,8 @@ namespace Wsh.AssetBundles.Editor {
         private GUIContent m_isClearOutputDirContent;
         private GUIContent m_isCopyStreamingContent;
         private GUIContent m_uploadTargetContent;
+        private GUIContent m_loadTypeContent;
+        private GUIContent m_isCopyResourcesContent;
 
         private static AssetBundleMainWindow m_instance = null;
 
@@ -84,6 +90,8 @@ namespace Wsh.AssetBundles.Editor {
                 m_outputPath = data.ABOutputDir;
                 m_isClearOutputDir = data.IsClearOutputDir;
                 m_isCopyAssetStreaming = data.IsCopyAssetStreaming;
+                m_isCopyResources = data.IsCopyResources;
+                m_loadType = data.LoadType;
                 m_compressOptionsType = data.CompressOptionsType;
                 m_uploadDir = data.UploadDir;
                 m_serverIp = data.ServerIp;
@@ -112,9 +120,11 @@ namespace Wsh.AssetBundles.Editor {
             m_scriptableObjLoader = new ABScriptableObjectLoader();
             m_scriptableObjLoader.CheckScriptableObject();
             m_targetContent = new GUIContent("Build Target", "Choose target platform to build for.");
+            m_loadTypeContent = new GUIContent("Load Type", "StreamingAssets, Resources");
             m_uploadTargetContent = new GUIContent("Target Platform", "");
             m_isClearOutputDirContent = new GUIContent("Is Clear Output Dir", "clear output dir or not.");
             m_isCopyStreamingContent = new GUIContent("Is Copy To AssetStreaming", "");
+            m_isCopyResourcesContent = new GUIContent("Is Copy To Resources", "");
             InitMainWindowData();
         }
 
@@ -191,6 +201,15 @@ namespace Wsh.AssetBundles.Editor {
             #endregion
             
             GUILayout.Space(10);
+
+            #region LoadType
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(FIRST_SPACE);
+            m_loadType = (AssetBundleLoadType)EditorGUILayout.EnumPopup(m_loadTypeContent, m_loadType);
+            GUILayout.EndHorizontal();
+            #endregion
+            
+            GUILayout.Space(10);
             
             #region IS Clear Output Dir
             GUILayout.BeginHorizontal();
@@ -205,6 +224,15 @@ namespace Wsh.AssetBundles.Editor {
             GUILayout.BeginHorizontal();
             GUILayout.Space(FIRST_SPACE);
             m_isCopyAssetStreaming = EditorGUILayout.ToggleLeft(m_isCopyStreamingContent, m_isCopyAssetStreaming);
+            GUILayout.EndHorizontal();
+            #endregion
+            
+            GUILayout.Space(10);
+            
+            #region IS Copy Resources
+            GUILayout.BeginHorizontal();
+            GUILayout.Space(FIRST_SPACE);
+            m_isCopyResources = EditorGUILayout.ToggleLeft(m_isCopyResourcesContent, m_isCopyResources);
             GUILayout.EndHorizontal();
             #endregion
             
@@ -250,7 +278,7 @@ namespace Wsh.AssetBundles.Editor {
             #region Build AssetBundle
             GUILayout.BeginHorizontal();
             if(GUILayout.Button("Build AssetBundle", GUILayout.Height(30))) {
-                AssetBundleBuilder.BuildAssetBundles(ResRootDir, OutputDir, BuildTarget, IsClearOutputDir, IsCopyAssetStreaming, CompressOptionsType, Version, GetBlackDirList());
+                AssetBundleBuilder.BuildAssetBundles(ResRootDir, OutputDir, BuildTarget, LoadType, IsClearOutputDir, IsCopyAssetStreaming, IsCopyResources, CompressOptionsType, Version, GetBlackDirList());
             }
             GUILayout.EndHorizontal();
             #endregion

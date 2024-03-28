@@ -9,6 +9,9 @@
         public const int MAX_DOWNLOAD_ASSET_BUNDLE_TIMES = 5;
 
         public const int ASSET_BUNDLE_OFFSET = 16;
+
         public const string RES_ROOT = "Res/";
+        public const string RESOURCES_PATH = "AssetBundles/";
+        public const string RESOURCES_EXTENSION = ".bytes";
     }
 }
