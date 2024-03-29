@@ -120,11 +120,12 @@ namespace Wsh.AssetBundles.Editor {
             CreateVersionFile(bundleOutputPath, version);
             BuildPipeline.BuildAssetBundles(bundleOutputPath, AssetBundleEditorHelper.GetAssetBundleOptions(compressOption), AssetBundleEditorHelper.GetBuildTarget(buildTarget));
             RevertAllFilesBundleName();
-            CreateOutputResNameList(m_dicAssetsBundles, dependenciesInfos, Path.Combine(bundleOutputPath, "ResNameList.lt"));
             if(isEncrypt) {
                 EncryptAssetBundles(bundleOutputPath);
             }
-            CreateAssetBundleCompareFile(bundleOutputPath);
+            Dictionary<string, long> assetBundleSizeDic = new Dictionary<string, long>();
+            CreateAssetBundleCompareFile(bundleOutputPath, ref assetBundleSizeDic);
+            CreateOutputResNameList(m_dicAssetsBundles, dependenciesInfos, assetBundleSizeDic, Path.Combine(bundleOutputPath, "ResNameList.lt"));
             if(isCopyAssetStreaming) {
                 //string targetPath = Path.Combine(streamingAssetsPath, buildTarget.ToString());
                 CopyDirectory(bundleOutputPath, Application.streamingAssetsPath, new string[] { ".manifest", ".lt" });
@@ -237,7 +238,7 @@ namespace Wsh.AssetBundles.Editor {
             }
         }
 
-        private static void CreateAssetBundleCompareFile(string bundleOutputPath) {
+        private static void CreateAssetBundleCompareFile(string bundleOutputPath, ref Dictionary<string, long> dic) {
             DirectoryInfo directoryInfo = Directory.CreateDirectory(bundleOutputPath);
             FileInfo[] files = directoryInfo.GetFiles();
             StringBuilder sb = new StringBuilder();
@@ -249,9 +250,11 @@ namespace Wsh.AssetBundles.Editor {
                     break;
                 }
                 if(IsAssetBundle(files[i])) {
-                    sb.Append(GetAssetName(files[i].FullName));
+                    string assetName = GetAssetName(files[i].FullName);
+                    sb.Append(assetName);
                     sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_INFO_SLIP_CHAR);
                     sb.Append(files[i].Length);
+                    dic.Add(assetName, files[i].Length);
                     sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_INFO_SLIP_CHAR);
                     sb.Append(MD5Calculater.GetFileMD5(files[i].FullName));
                     sb.Append(AssetBundleDefine.ASSET_BUNDLE_COMPARE_FILE_SLIP_CHAR);
@@ -298,9 +301,9 @@ namespace Wsh.AssetBundles.Editor {
 
         }
 
-        private static void CreateOutputResNameList(Dictionary<string, string> dicAssetsBundles, List<ABDependenciesInfo> dependencies, string fileName) {
+        private static void CreateOutputResNameList(Dictionary<string, string> dicAssetsBundles, List<ABDependenciesInfo> dependencies, Dictionary<string, long> assetBundleSizeDic, string fileName) {
             StringBuilder sb = new StringBuilder();
-            int space = 50;
+            int space = 16;
             dependencies.Sort((v1, v2) => {
                 return v1.Name.CompareTo(v2.Name);
             });
@@ -322,15 +325,22 @@ namespace Wsh.AssetBundles.Editor {
             List<string> resNameList = dicTemp.Keys.ToList();
             resNameList.Sort();
             for(int i = 0; i < resNameList.Count; i++) {
-                sb.Append("    " + resNameList[i]);
-                if(resNameList[i].Length < space) {
-                    for(int j = 0; j < (space - resNameList[i].Length); j++) {
+                string resName = resNameList[i];
+                string md5Name = dicTemp[resName];
+                sb.Append("    " + md5Name);
+                sb.Append("    ");
+                long size = assetBundleSizeDic[md5Name];
+                string sizeStr = (size/1024f).ToString("F2") + "KB";
+                sb.Append(sizeStr);
+                if(sizeStr.Length < space) {
+                    for(int j = 0; j < (space - sizeStr.Length); j++) {
                         sb.Append(" ");
                     }
                 } else {
                     sb.Append("        ");
                 }
-                sb.Append(dicTemp[resNameList[i]]);
+                sb.Append("    ");
+                sb.Append(resName);
                 sb.Append('\n');
             }
             File.WriteAllText(fileName, sb.ToString());
